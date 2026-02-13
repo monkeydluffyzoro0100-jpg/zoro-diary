@@ -18,19 +18,9 @@ body {
   color: #222;
 }
 
-#lockScreen {
-  position: fixed;
-  inset: 0;
-  background: #f5f1ea;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
 #editorContainer {
   padding: 40px;
-  max-width: 800px;
+  max-width: 900px;
   margin: auto;
 }
 
@@ -40,7 +30,7 @@ body {
 }
 
 #editor {
-  min-height: 400px;
+  min-height: 500px;
   outline: none;
   margin-top: 20px;
   font-size: 20px;
@@ -53,60 +43,50 @@ body {
   left: 50%;
   transform: translateX(-50%);
   background: white;
-  padding: 10px;
-  border-radius: 30px;
+  padding: 10px 15px;
+  border-radius: 40px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .toolbar button {
   background: none;
   border: none;
-  margin: 0 5px;
+  margin: 0 6px;
   font-size: 18px;
   cursor: pointer;
 }
 
-.hidden { display: none; }
-
 img {
   max-width: 100%;
   margin: 10px 0;
+  border-radius: 8px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="lockScreen">
-  <h2>Enter PIN</h2>
-  <input type="password" id="pinInput" maxlength="4">
-  <button onclick="unlock()">Unlock</button>
-</div>
-
-<div id="editorContainer" class="hidden">
+<div id="editorContainer">
   <div id="date"></div>
   <div id="editor" contenteditable="true"></div>
 </div>
 
-<div class="toolbar hidden" id="toolbar">
+<div class="toolbar">
   <button onclick="format('bold')"><b>B</b></button>
   <button onclick="format('italic')"><i>I</i></button>
   <button onclick="format('underline')"><u>U</u></button>
-  <button onclick="changeFont()">✍</button>
+  <button onclick="toggleFont()">✍</button>
   <button onclick="addImage()">🖼</button>
-  <button onclick="startVoice()">🎤</button>
-  <button onclick="readAloud()">🔊</button>
   <button onclick="downloadEntry()">⬇</button>
 </div>
 
 <script>
 const editor = document.getElementById("editor");
 const dateEl = document.getElementById("date");
-const today = new Date().toLocaleString();
-dateEl.innerText = today;
+
+dateEl.innerText = new Date().toLocaleString();
 
 const entryKey = "entry_" + new Date().toDateString();
-
 editor.innerHTML = localStorage.getItem(entryKey) || "";
 
 editor.addEventListener("input", () => {
@@ -117,7 +97,7 @@ function format(command) {
   document.execCommand(command, false, null);
 }
 
-function changeFont() {
+function toggleFont() {
   if (editor.style.fontFamily === "Caveat") {
     editor.style.fontFamily = "Playfair Display";
   } else {
@@ -143,21 +123,6 @@ function addImage() {
   input.click();
 }
 
-function startVoice() {
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.start();
-  recognition.onresult = function(event) {
-    editor.innerHTML += event.results[0][0].transcript;
-    save();
-  };
-}
-
-function readAloud() {
-  const speech = new SpeechSynthesisUtterance(editor.innerText);
-  speechSynthesis.speak(speech);
-}
-
 function downloadEntry() {
   const blob = new Blob([editor.innerHTML], { type: "text/html" });
   const a = document.createElement("a");
@@ -168,24 +133,6 @@ function downloadEntry() {
 
 function save() {
   localStorage.setItem(entryKey, editor.innerHTML);
-}
-
-function unlock() {
-  const pin = document.getElementById("pinInput").value;
-  if (!localStorage.getItem("zoro_pin")) {
-    localStorage.setItem("zoro_pin", pin);
-  }
-  if (pin === localStorage.getItem("zoro_pin")) {
-    document.getElementById("lockScreen").classList.add("hidden");
-    document.getElementById("editorContainer").classList.remove("hidden");
-    document.getElementById("toolbar").classList.remove("hidden");
-  } else {
-    alert("Wrong PIN");
-  }
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
 }
 </script>
 
